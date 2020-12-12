@@ -1,14 +1,18 @@
 import React from 'react';
-import { Upload, Button, Form, Card, Checkbox, Divider } from 'antd';
+//import { Upload, Button, Form, Card, Checkbox, Divider } from 'antd';
+import Button from '@material-ui/core/Button';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Checkbox from '@material-ui/core/Checkbox';
 import { UploadOutlined } from '@ant-design/icons';
+import { ErrorMessage, Field } from 'formik';
 import axios from 'axios';
+import { DropzoneArea } from 'material-ui-dropzone';
+import * as Yup from 'yup';
+import { Wizard } from './Wizard';
 import { WordsViewer } from './WordsViewer';
-
-const CheckboxGroup = Checkbox.Group;
-
-const formStyles = {
-    background: "#ececec"
-};
+import { Uploader } from './Uploader';
 
 export class Home extends React.Component {
     static #lists = ['NGSL', 'NAWL'];
@@ -18,12 +22,12 @@ export class Home extends React.Component {
 
         this.state = {
             loading: false,
-            sourceFiles: [],
+            srcFiles: [],
 
             srcList: {
                 checkAll: false,
                 indeterminate: true,
-                checkedList: ['NGSL', 'NAWL'],
+                checkedList: [],
             },
 
             diffFiles: [],
@@ -40,13 +44,13 @@ export class Home extends React.Component {
     handleSubmit = async (values) => {
         //setLoading(true);
 
-        const { sourceFiles, srcList, diffFiles } = this.state;
+        const { srcFiles, srcList, diffFiles } = this.state;
         const formData = new FormData();
-        sourceFiles.forEach(file => {
+        srcFiles.forEach(file => {
             formData.append('srcFiles', file);
         });
 
-        diffFiles.forEach(file => {
+        Array.from(diffFiles).forEach(file => {
             formData.append('diffFiles', file);
         });
 
@@ -120,44 +124,80 @@ export class Home extends React.Component {
         }
     }
 
+    handleChange = (event) => {
+        const { srcList } = this.state;
+        const listName = event.target.name;
+        if (event.target.checked) {
+            if (srcList.checkedList.indexOf(listName) < 0)
+                srcList.checkedList.push(listName)
+        } else {
+            const index = srcList.checkedList.indexOf(listName);
+            if (index >= 0)
+                srcList.checkedList.splice(index, 1);
+        }
+
+        this.setState({
+            srcList: srcList
+        });
+    };
+
+    handleCapture = ({ target }) => {
+        const name = target.name;
+
+        this.setState({
+            [name]: target.files
+        });
+    };
+
+    onFilesChange = (stateName, files) => {
+        this.setState({
+            [stateName]: files
+        });
+        //console.log("Files:", files);
+        //this[stateName] = files;
+    };
+
     render() {
-        const { loading, calculationId } = this.state;
+        const { loading, srcList, calculationId, diffFiles } = this.state;
+        const WizardStep = ({ children }) => children;
+
+        const srcFormList = Home.#lists.map((list) => {
+            const checked = srcList.checkedList.indexOf(list) >= 0;
+            return <FormControlLabel
+                control={<Checkbox checked={checked} onChange={this.handleChange} name={list} />}
+                label={list}
+            />
+        });
 
         return (
             <>
-                <Form onFinish={this.handleSubmit} styles={formStyles}>
-                    <Card title="Source Words">
-                        <Upload name="sourceFiles" directory {...this.uploadProps('sourceFiles')}>
-                            <Button icon={<UploadOutlined />}>Click to Upload</Button>
-                        </Upload>
+                <Wizard
+                    initialValues={{
+                        email: '',
+                        firstName: '',
+                        lastName: '',
+                    }}
+                    onSubmit={this.handleSubmit}
+                >
+                    <WizardStep>
                         <div>
-                            <Checkbox {...this.checkAllProps('srcList')}>
-                                Check all
-                        </Checkbox>
-                            <Divider />
-                            <CheckboxGroup options={Home.#lists} {...this.checkboxGroupProps('srcList')} />
+                            <input
+                                accept="image/*"
+                                id="contained-button-file"
+                                multiple
+                                type="file"
+                                name="srcFiles"
+                                onChange={this.handleCapture}
+                            />
                         </div>
-                    </Card>
-                    <Card title="Difference with">
-                        <Upload {...this.uploadProps('diffFiles')}>
-                            <Button icon={<UploadOutlined />}>Click to Upload</Button>
-                        </Upload>
                         <div>
-                            <Checkbox {...this.checkAllProps('diffList')}>
-                                Check all
-                        </Checkbox>
-                            <Divider />
-                            <CheckboxGroup options={Home.#lists} {...this.checkboxGroupProps('diffList')} />
+                            <FormGroup>{srcFormList}</FormGroup>
                         </div>
-                    </Card>
-                    <Card title="Intersection with">
-                    </Card>
-                    <Form.Item>
-                        <Button type="primary" loading={loading} htmlType="submit">
-                            Submit
-                    </Button>
-                    </Form.Item>
-                </Form>
+                    </WizardStep>
+                    <WizardStep>
+                        <Uploader onDropAccepted={(files) => this.onFilesChange("diffFiles", files)} initialFiles={diffFiles} />
+                    </WizardStep>
+                </Wizard>
                 <WordsViewer calculationId={calculationId} />
             </>
         );
