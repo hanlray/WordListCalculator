@@ -18,6 +18,7 @@ namespace WordSet.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly Dictionary<string, string> listToFile = new Dictionary<string, string>() 
         {
+            { "NGSL", "ngsl_1.01.txt" },
             { "NAWL", "nawl_1.0.txt" }
         };
 
