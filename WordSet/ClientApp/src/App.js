@@ -7,14 +7,14 @@ import './custom.less'
 import { Home } from './components/Home';
 
 export default class App extends Component {
-  static displayName = App.name;
+    static displayName = App.name;
 
-  render () {
-    return (
-        <Layout>
-            <Route exact path='/' component={Home} />
-        <Route path='/about' component={About} />
-      </Layout>
-    );
-  }
+    render() {
+        return (
+            <Layout>
+                <Route exact path='/' component={Home} />
+                <Route path='/about' component={About} />
+            </Layout>
+        );
+    }
 }

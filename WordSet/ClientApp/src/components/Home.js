@@ -1,9 +1,7 @@
 import React from 'react';
-//import { Upload, Button, Form, Card, Checkbox, Divider } from 'antd';
-import Button from '@material-ui/core/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
+import Container from '@material-ui/core/Container';
 import Checkbox from '@material-ui/core/Checkbox';
 import { UploadOutlined } from '@ant-design/icons';
 import { ErrorMessage, Field } from 'formik';
@@ -170,7 +168,7 @@ export class Home extends React.Component {
         });
 
         return (
-            <>
+            <Container maxWidth='sm'>
                 <Wizard
                     initialValues={{
                         email: '',
@@ -180,6 +178,7 @@ export class Home extends React.Component {
                     onSubmit={this.handleSubmit}
                 >
                     <WizardStep>
+                        <h2>Source Lists</h2>
                         <div>
                             <input
                                 accept="image/*"
@@ -195,11 +194,12 @@ export class Home extends React.Component {
                         </div>
                     </WizardStep>
                     <WizardStep>
+                        <h2>Exclude Lists</h2>
                         <Uploader onDropAccepted={(files) => this.onFilesChange("diffFiles", files)} initialFiles={diffFiles} />
                     </WizardStep>
                 </Wizard>
                 <WordsViewer calculationId={calculationId} />
-            </>
+            </Container>
         );
     }
 }
